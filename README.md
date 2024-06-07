@@ -1,27 +1,5 @@
-# Environment and Credentials Setup
+# Consume a real-time Twilio Media Stream using WebSockets, Python, and Flask
 
-1. Create a virtual environment
+Real-time audio from a [Twilio call](https://twilio.com/docs/voice) can be streamed directly to a WebSocket. This repository is part of a [tutorial](https://www.twilio.com/docs/voice/tutorials/consume-real-time-media-stream-using-websockets-python-and-flask).
 
-```shell
-# Mac/Linux
-python3 -m venv venv
-. venv/bin/activate
-
-# Windows
-python -m venv venv
-.\venv\Scripts\activate.bat
-```
-
-2. Install required packages
-
-```shell
-pip install -r requirements.txt
-```
-
-3. Change the filename of `.env` and replace `your-key-here` with your corresponding API key, authtoken, etc. for each line. **Make sure to not share this file with anyone or upload it to GitHub**. You will need:
-    1. An [AssemblyAI API Key](https://www.assemblyai.com/dashboard/signup) with funds added to access realtime transcription
-  
-
-# Run the application
-
-Execute `python main.py` or `python3 main.py` in the project directory to start the application. Then, call your Twilio phone number and begin speaking. You will see your speech transcribed in the console.
+Also make sure you check out our [examples repository](https://github.com/twilio/media-streams).

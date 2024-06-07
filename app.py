@@ -1,62 +1,57 @@
-#!/usr/bin/env python
-
-import asyncio
-import http
-import signal
-
 import base64
 import json
+import logging
 
-import websockets
+from flask import Flask
+from flask_sockets import Sockets
 
-from twilio_transcriber import TwilioTranscriber
+app = Flask(__name__)
+sockets = Sockets(app)
 
-WEBSOCKET_ROUTE = '/realtime'
+HTTP_SERVER_PORT = 5000
 
-async def echo(websocket):
-    async for message in websocket:
-        await websocket.send(message)
+@sockets.route('/media')
+def echo(ws):
+    app.logger.info("Connection accepted")
+    # A lot of messages will be sent rapidly. We'll stop showing after the first one.
+    has_seen_media = False
+    message_count = 0
+    while not ws.closed:
+        message = ws.receive()
+        if message is None:
+            app.logger.info("No message received...")
+            continue
 
+        # Messages are a JSON encoded string
+        data = json.loads(message)
 
-async def health_check(path, request_headers):
-    if path == "/healthz":
-        return http.HTTPStatus.OK, [], b"OK\n"
-    
+        # Using the event type you can determine what type of message you are receiving
+        if data['event'] == "connected":
+            app.logger.info("Connected Message received: {}".format(message))
+        if data['event'] == "start":
+            app.logger.info("Start Message received: {}".format(message))
+        if data['event'] == "media":
+            if not has_seen_media:
+                app.logger.info("Media message: {}".format(message))
+                payload = data['media']['payload']
+                app.logger.info("Payload is: {}".format(payload))
+                chunk = base64.b64decode(payload)
+                app.logger.info("That's {} bytes".format(len(chunk)))
+                app.logger.info("Additional media messages from WebSocket are being suppressed....")
+                has_seen_media = True
+        if data['event'] == "stop":
+            app.logger.info("Stop Message received: {}".format(message))
+            break
+        message_count += 1
 
-async def transcription_websocket(websocket, WEBSOCKET_ROUTE ):
-    while True:
-        data = json.loads(websocket.receive())
-        match data['event']:
-            case "connected":
-                transcriber = TwilioTranscriber()
-                transcriber.connect()
-                print('transcriber connected')
-            case "start":
-                print('twilio started')
-            case "media": 
-                payload_b64 = data['media']['payload']
-                payload_mulaw = base64.b64decode(payload_b64)
-                transcriber.stream(payload_mulaw)
-            case "stop":
-                print('twilio stopped')
-                transcriber.close()
-                print('transcriber closed')
-
-
-async def main():
-    # Set the stop condition when receiving SIGTERM.
-    loop = asyncio.get_running_loop()
-    stop = loop.create_future()
-    loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
-
-    async with websockets.serve(
-        echo,
-        host="",
-        port=8080,
-        process_request=health_check,
-    ):
-        await stop
+    app.logger.info("Connection closed. Received a total of {} messages".format(message_count))
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+if __name__ == '__main__':
+    app.logger.setLevel(logging.DEBUG)
+    from gevent import pywsgi
+    from geventwebsocket.handler import WebSocketHandler
+
+    server = pywsgi.WSGIServer(('', HTTP_SERVER_PORT), app, handler_class=WebSocketHandler)
+    print("Server listening on: http://localhost:" + str(HTTP_SERVER_PORT))
+    server.serve_forever()
