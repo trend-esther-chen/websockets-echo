@@ -8,7 +8,7 @@ from flask_sockets import Sockets
 app = Flask(__name__)
 sockets = Sockets(app)
 
-HTTP_SERVER_PORT = 5000
+HTTP_SERVER_PORT = 8080
 
 @sockets.route('/media')
 def echo(ws):
@@ -52,6 +52,6 @@ if __name__ == '__main__':
     from gevent import pywsgi
     from geventwebsocket.handler import WebSocketHandler
 
-    server = pywsgi.WSGIServer(('https://websockets-echo-dh6t.onrender.com', HTTP_SERVER_PORT), app, handler_class=WebSocketHandler)
+    server = pywsgi.WSGIServer(('', HTTP_SERVER_PORT), app, handler_class=WebSocketHandler)
     print("Server listening on: http://localhost:" + str(HTTP_SERVER_PORT))
     server.serve_forever()
