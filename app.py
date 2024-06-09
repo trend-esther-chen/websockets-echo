@@ -12,14 +12,14 @@ HTTP_SERVER_PORT = 8080
 
 @sockets.route('/media')
 def echo(ws):
-    print("Connection accepted")
+    console.log("Connection accepted")
     # A lot of messages will be sent rapidly. We'll stop showing after the first one.
     has_seen_media = False
     message_count = 0
     while not ws.closed:
         message = ws.receive()
         if message is None:
-            print("No message received...")
+            console.log("No message received...")
             continue
 
         # Messages are a JSON encoded string
@@ -27,24 +27,24 @@ def echo(ws):
 
         # Using the event type you can determine what type of message you are receiving
         if data['event'] == "connected":
-            print("Connected Message received: {}".format(message))
+            console.log("Connected Message received: {}".format(message))
         if data['event'] == "start":
-            print("Start Message received: {}".format(message))
+            console.log("Start Message received: {}".format(message))
         if data['event'] == "media":
             if not has_seen_media:
-                print("Media message: {}".format(message))
+                console.log("Media message: {}".format(message))
                 payload = data['media']['payload']
-                print("Payload is: {}".format(payload))
+                console.log("Payload is: {}".format(payload))
                 chunk = base64.b64decode(payload)
-                print("That's {} bytes".format(len(chunk)))
-                print("Additional media messages from WebSocket are being suppressed....")
+                console.log("That's {} bytes".format(len(chunk)))
+                console.log("Additional media messages from WebSocket are being suppressed....")
                 has_seen_media = True
         if data['event'] == "stop":
-            print("Stop Message received: {}".format(message))
+            console.log("Stop Message received: {}".format(message))
             break
         message_count += 1
 
-    print("Connection closed. Received a total of {} messages".format(message_count))
+    console.log("Connection closed. Received a total of {} messages".format(message_count))
 
 
 if __name__ == '__main__':
@@ -53,5 +53,5 @@ if __name__ == '__main__':
     from geventwebsocket.handler import WebSocketHandler
 
     server = pywsgi.WSGIServer(('', HTTP_SERVER_PORT), app, handler_class=WebSocketHandler)
-    print("Server listening on: http://localhost:" + str(HTTP_SERVER_PORT))
+    console.log("Server listening on: http://localhost:" + str(HTTP_SERVER_PORT))
     server.serve_forever()
