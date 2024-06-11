@@ -50,6 +50,6 @@ if __name__ == '__main__':
     from gevent import pywsgi
     from geventwebsocket.handler import WebSocketHandler
 
-    server = pywsgi.WSGIServer(('', HTTP_SERVER_PORT), app, handler_class=WebSocketHandler)
-    console.log("Server listening on: http://localhost:" + str(HTTP_SERVER_PORT))
+    server = pywsgi.WSGIServer(('0.0.0.0', HTTP_SERVER_PORT), app, handler_class=WebSocketHandler)
+    app.logger.info("Server listening on: http://localhost:" + str(HTTP_SERVER_PORT))
     server.serve_forever()
