@@ -12,14 +12,13 @@ HTTP_SERVER_PORT = 8080
 
 @sockets.route('/media')
 def echo(ws):
-    console.log("Connection accepted")
     # A lot of messages will be sent rapidly. We'll stop showing after the first one.
     has_seen_media = False
     message_count = 0
     while not ws.closed:
         message = ws.receive()
         if message is None:
-            console.log("No message received...")
+            ws.send("No message received...")
             continue
 
         # Messages are a JSON encoded string
@@ -27,24 +26,23 @@ def echo(ws):
 
         # Using the event type you can determine what type of message you are receiving
         if data['event'] == "connected":
-            console.log("Connected Message received: {}".format(message))
+            ws.send(f"Connected Message received: {format(message)}")
         if data['event'] == "start":
-            console.log("Start Message received: {}".format(message))
+            ws.send(f"Start Message received: {format(message)}")
         if data['event'] == "media":
             if not has_seen_media:
-                console.log("Media message: {}".format(message))
+                ws.send(f"Media message: {format(message)}")
                 payload = data['media']['payload']
-                console.log("Payload is: {}".format(payload))
+                ws.send(f"Payload is: {format(payload)}")
                 chunk = base64.b64decode(payload)
-                console.log("That's {} bytes".format(len(chunk)))
-                console.log("Additional media messages from WebSocket are being suppressed....")
+                ws.send(f"That's {format(len(chunk))} bytes")
+                ws.send(f"Additional media messages from WebSocket are being suppressed....")
                 has_seen_media = True
         if data['event'] == "stop":
-            console.log("Stop Message received: {}".format(message))
+            ws.send(f"Stop Message received: {format(message)}")
             break
         message_count += 1
-
-    console.log("Connection closed. Received a total of {} messages".format(message_count))
+    ws.send(f"Connection closed. Received a total of {format(message_count)} messages")
 
 
 if __name__ == '__main__':
